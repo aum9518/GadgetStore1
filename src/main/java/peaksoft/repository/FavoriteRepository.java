@@ -1,4 +1,7 @@
 package peaksoft.repository;
 
-public interface FavoriteRepository extends org.springframework.data.jpa.repository.JpaRepository<peaksoft.entity.Favorite, java.lang.Long> {
+import org.springframework.data.jpa.repository.JpaRepository;
+import peaksoft.entity.Favorite;
+
+public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
 }

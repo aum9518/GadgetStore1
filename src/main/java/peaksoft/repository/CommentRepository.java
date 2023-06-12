@@ -1,4 +1,7 @@
 package peaksoft.repository;
 
-public interface CommentRepository extends org.springframework.data.jpa.repository.JpaRepository<peaksoft.entity.Comment, java.lang.Long> {
+import org.springframework.data.jpa.repository.JpaRepository;
+import peaksoft.entity.Comment;
+
+public interface CommentRepository extends JpaRepository<Comment, Long> {
 }

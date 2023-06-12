@@ -1,4 +1,7 @@
 package peaksoft.repository;
 
-public interface BasketRepository extends org.springframework.data.jpa.repository.JpaRepository<peaksoft.entity.Basket, java.lang.Long> {
+import org.springframework.data.jpa.repository.JpaRepository;
+import peaksoft.entity.Basket;
+
+public interface BasketRepository extends JpaRepository<Basket, Long> {
 }

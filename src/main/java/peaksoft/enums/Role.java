@@ -1,2 +1,5 @@
-package peaksoft.enums;public enum Role {
+package peaksoft.enums;
+
+public enum Role {
+    ADMIN,USER
 }

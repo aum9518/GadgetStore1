@@ -1,2 +1,5 @@
-package peaksoft.enums;public enum Category {
+package peaksoft.enums;
+
+public enum Category {
+    LAPTOP,PHONE,HEADPHONE,SMARTWATCH
 }
