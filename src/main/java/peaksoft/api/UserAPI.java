@@ -48,8 +48,8 @@ public class UserAPI {
 
     @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/add")
-    public SimpleResponse deleteOrAddProductsToFavorite(@RequestParam Long id,@RequestParam String word){
-        return service.addOrDeleteFavorite(id, word);
+    public SimpleResponse deleteOrAddProductsToFavorite(@RequestParam Long id){
+        return service.addOrDeleteFavorite(id);
     }
 
     @GetMapping("/favorites")
@@ -59,8 +59,8 @@ public class UserAPI {
 
     @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/basket")
-    public SimpleResponse deleteOrAddProductsToBasket(@RequestParam Long id,@RequestParam String word){
-        return service.addOrDeleteProductsToBasket(id, word);
+    public SimpleResponse deleteOrAddProductsToBasket(@RequestParam Long id){
+        return service.addOrDeleteProductsToBasket(id);
     }
 
     @PreAuthorize("hasAuthority('USER')")

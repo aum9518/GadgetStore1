@@ -6,7 +6,7 @@ import peaksoft.enums.Role;
 import java.time.ZonedDateTime;
 
 @Builder
-public record AuthenticationRequest(String firstName, String lastName, String email, String password,  Role role) {
+public record AuthenticationRequest(String firstName, String lastName, String email, String password) {
     public AuthenticationRequest {
     }
 }

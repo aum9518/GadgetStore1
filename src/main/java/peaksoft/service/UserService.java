@@ -14,9 +14,9 @@ public interface UserService {
     SimpleResponse updateUser(Long id, UserRequest userRequest);
     UserResponse getUserById(Long id);
     SimpleResponse deleteUserById(Long id);
-    SimpleResponse addOrDeleteFavorite(Long productId,String word);
+    SimpleResponse addOrDeleteFavorite(Long productId);
     List<FavoriteResponse> getAllUsersFavorites();
-    SimpleResponse addOrDeleteProductsToBasket(Long productId ,String word);
+    SimpleResponse addOrDeleteProductsToBasket(Long productId);
     GetAllUsersBasketResponse getUsersAllBasketsProduct();
     SimpleResponse deleteAllProductsFromBasket();
 

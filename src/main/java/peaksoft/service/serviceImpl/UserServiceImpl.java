@@ -19,6 +19,9 @@ import peaksoft.entity.Favorite;
 import peaksoft.entity.Product;
 import peaksoft.entity.User;
 import peaksoft.enums.Role;
+import peaksoft.exception.BadCredentialException;
+import peaksoft.exception.BadRequestException;
+import peaksoft.exception.NotFoundException;
 import peaksoft.repository.BasketRepository;
 import peaksoft.repository.FavoriteRepository;
 import peaksoft.repository.ProductRepository;
@@ -43,7 +46,7 @@ public class UserServiceImpl implements UserService {
     private User getAuthentication() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        User user = repository.getUserByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User with email:" + email + " is not found!"));
+        User user = repository.getUserByEmail(email).orElseThrow(() -> new NotFoundException("User with email:" + email + " is not found!"));
         return user;
     }
 
@@ -78,7 +81,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public SimpleResponse updateUser(Long id, UserRequest userRequest) {
-        User user = repository.findById(id).orElseThrow(() -> new UsernameNotFoundException("User with id: " + id + "is not found"));
+        User user = repository.findById(id).orElseThrow(() -> new NotFoundException("User with id: " + id + "is not found"));
         user.setFirstName(userRequest.firsName());
         user.setLastName(userRequest.lastName());
         user.setEmail(userRequest.email());
@@ -93,7 +96,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse getUserById(Long id) {
-        User user = repository.findById(id).orElseThrow(() -> new UsernameNotFoundException("User with id: " + id + "is not found"));
+        User user = repository.findById(id).orElseThrow(() -> new NotFoundException("User with id: " + id + "is not found"));
         String token = jwtService.generateToken(user);
         return UserResponse.builder()
                 .firstName(user.getFirstName())
@@ -111,7 +114,7 @@ public class UserServiceImpl implements UserService {
     public SimpleResponse deleteUserById(Long id) {
         if (repository.existsById(id)) {
             repository.deleteById(id);
-        } else throw new UsernameNotFoundException("user with id: " + id + "is not found");
+        } else throw new NotFoundException("user with id: " + id + "is not found");
         return SimpleResponse.builder()
                 .status(HttpStatus.OK)
                 .message("Successfully deleted")
@@ -119,8 +122,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public SimpleResponse addOrDeleteFavorite(Long productId, String word) {
-        Product product = productRepository.findById(productId).orElseThrow(() -> new UsernameNotFoundException("Product with id: " + productId + " is not found!"));
+    public SimpleResponse addOrDeleteFavorite(Long productId) {
+        Product product = productRepository.findById(productId).orElseThrow(() -> new NotFoundException("Product with id: " + productId + " is not found!"));
         Product newProduct = Product.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -131,49 +134,31 @@ public class UserServiceImpl implements UserService {
                 .madeIn(product.getMadeIn())
                 .category(product.getCategory())
                 .build();
-        if (word.equalsIgnoreCase("add")) {
+
 
             User user = getAuthentication();
             List<Favorite> all = favoriteRepository.findAll();
-
-            Favorite favorite = new Favorite();
-            favorite.setUser(user);
-            favorite.setProduct(newProduct);
-            favoriteRepository.save(favorite);
-            return SimpleResponse.builder()
-                    .status(HttpStatus.OK)
-                    .message("Successfully added")
-                    .build();
-
-//                for (Favorite f:all) {
-//                    if (f.getUser().equals(user)){
-//                        f.setProduct(newProduct);
-//                        favoriteRepository.save(f);
-//                        return SimpleResponse.builder()
-//                                .status(HttpStatus.OK)
-//                                .message("Successfully added")
-//                                .build();
-//                    }
-//                }
-
-        } else if (word.equalsIgnoreCase("delete")) {
-            User user = getAuthentication();
-            List<Favorite> all = favoriteRepository.findAll();
-            for (Favorite f : all) {
-
-                if (f.getUser().equals(user)) {
-                    favoriteRepository.delete(f);
-                    product.getFavorite().remove(f);
-                    return SimpleResponse.builder()
-                            .status(HttpStatus.OK)
-                            .message("Successfully deleted")
-                            .build();
+        for (Favorite f:all) {
+            if (f.getUser().equals(user)){
+                if (favoriteRepository.existsById(f.getId())){
+                favoriteRepository.deleteById(f.getId());
+                return SimpleResponse.builder()
+                        .status(HttpStatus.OK)
+                        .message("Successfully deleted")
+                        .build();
                 }
-
-
             }
         }
-        return null;
+        Favorite favorite = new Favorite();
+        favorite.setUser(user);
+        favorite.setProduct(newProduct);
+        favoriteRepository.save(favorite);
+        return SimpleResponse.builder()
+                .status(HttpStatus.OK)
+                .message("Successfully added")
+                .build();
+
+
     }
 
     @Override
@@ -189,61 +174,47 @@ public class UserServiceImpl implements UserService {
                         .productName(f.getProduct().getName())
                         .build();
                 favoriteResponseList.add(response);
-            }
+            }else throw new BadCredentialException(" The user's token does not match");
         }
         return favoriteResponseList;
     }
 
     @Override
-    public SimpleResponse addOrDeleteProductsToBasket(Long productId, String word) {
-        Product product = productRepository.findById(productId).orElseThrow(() -> new UsernameNotFoundException("Product with id: " + productId + " is not found!"));
-        Product newProduct = Product.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .price(product.getPrice())
-                .images(product.getImages())
-                .isFavorite(product.isFavorite())
-                .characteristic(product.getCharacteristic())
-                .madeIn(product.getMadeIn())
-                .category(product.getCategory())
-                .build();
+    public SimpleResponse addOrDeleteProductsToBasket(Long productId) {
+        Product product = productRepository.findById(productId).orElseThrow(() -> new NotFoundException("Product with id: " + productId + " is not found!"));
         User user = getAuthentication();
         List<Basket> allBaskets = basketRepository.findAll();
-        List<Product> allProducts = productRepository.findAll();
-
-        if (word.equalsIgnoreCase("add")) {
-
             for (Basket b : allBaskets) {
                 if (b.getUser().equals(user)) {
-                    b.getProducts().add(newProduct);
-                    basketRepository.save(b);
-                    return SimpleResponse.builder()
-                            .status(HttpStatus.OK)
-                            .message("Successfully added")
-                            .build();
-                }
-            }
 
-        } else if (word.equalsIgnoreCase("delete")) {
-            for (Basket b : allBaskets) {
-                if (b.getUser().equals(user)) {
-                    for (Product p : b.getProducts()) {
-                        if (p.equals(newProduct)) {
-                            /*for (Product pr:allProducts) {
-                                if (pr.equals(p)){
-                                    pr.getBaskets().remove(b);
-                                }
-                            }*/
-                            b.getProducts().remove(p);
-                            return SimpleResponse.builder()
-                                    .status(HttpStatus.OK)
-                                    .message("Successfully deleted!")
-                                    .build();
-                        }
+                    if (b.getProducts().contains(product)){
+
+                                for (Product p : b.getProducts()) {
+                                    if (p.equals(product)) {
+                                        b.getProducts().remove(p);
+                                        return SimpleResponse.builder()
+                                                .status(HttpStatus.OK)
+                                                .message("Successfully deleted!")
+                                                .build();
+                                    }
+
+                                b.getProducts().remove(product);
+                                product.getBaskets().remove(b);
+                            }
+
+                    } else{
+                        product.getBaskets().add(b);
+                        b.getProducts().add(product);
+                        basketRepository.save(b);
+                        productRepository.save(product);
+                        return SimpleResponse.builder()
+                                .status(HttpStatus.OK)
+                                .message("Successfully added")
+                                .build();
                     }
+
                 }
             }
-        }
 
         return null;
     }
@@ -263,19 +234,15 @@ public class UserServiceImpl implements UserService {
                 basket.setProducts(allBasket.getProducts());
                 basket.setUser(allBasket.getUser());
                 for (int i = 0; i < basket.getProducts().size(); i++) {
+                    product.setId(basket.getProducts().get(i).getId());
                     product.setName(basket.getProducts().get(i).getName());
                     product.setPrice(basket.getProducts().get(i).getPrice());
                     product.setImages(basket.getProducts().get(i).getImages());
                     product.setCharacteristic(basket.getProducts().get(i).getCharacteristic());
                     product.setMadeIn(basket.getProducts().get(i).getMadeIn());
                     product.setCategory(basket.getProducts().get(i).getCategory());
-
-//                    product.setBaskets(basket.getProducts().get(i).getBaskets());
-//                    product.setBrand(basket.getProducts().get(i).getBrand());
-//                    product.setComment(basket.getProducts().get(i).getComment());
-//                    product.setFavorite(basket.getProducts().get(i).getFavorite());
                     productList.add(product);
-                    sum=sum +product.getPrice();
+                    sum = sum + product.getPrice();
                 }
             }
         }
@@ -290,16 +257,17 @@ public class UserServiceImpl implements UserService {
     public SimpleResponse deleteAllProductsFromBasket() {
         User user = getAuthentication();
         List<Basket> allBaskets = basketRepository.findAll();
+
         List<Product> products = new ArrayList<>();
-        for (Basket allBasket : allBaskets) {
-            if (allBasket.getUser().equals(user)) {
-               allBasket.setProducts(products);
+        for (Basket b : allBaskets) {
+            if (b.getUser().equals(user)) {
+                repository.deleteAllBasketsProducts(b.getId(),products);
                 return SimpleResponse.builder()
                         .status(HttpStatus.OK)
                         .message("Successfully cleaned!")
                         .build();
             }
-            }
+        }
         return null;
     }
 

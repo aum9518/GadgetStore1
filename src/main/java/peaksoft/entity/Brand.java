@@ -19,6 +19,6 @@ public class Brand {
     private Long id;
     private String brandName;
     private String image;
-    @OneToMany(mappedBy = "brand",cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.REFRESH})
+    @OneToMany(mappedBy = "brand",cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.REFRESH,CascadeType.REMOVE})
     private List<Product> products;
 }

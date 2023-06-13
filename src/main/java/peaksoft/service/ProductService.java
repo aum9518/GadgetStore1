@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface ProductService {
   List<AllProductRequest> getAllProducts(Category category, int price);
-  SimpleResponse saveProduct(ProductRequest productRequest);
+  SimpleResponse saveProduct(ProductRequest productRequest,Long brandId);
   SimpleResponse updateProduct(Long id, ProductRequest productRequest);
   ProductResponse getProductById(Long id);
   SimpleResponse deleteProductById(Long id);

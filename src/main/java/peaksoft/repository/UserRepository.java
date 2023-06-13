@@ -20,8 +20,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     @Modifying
-    @Query("update Basket b set b.products =:products where b.id=:id")
-    void deleteAllBasketsProducts(@Param("products")List<Product> products,@Param("id") Long id);
+    @Query("update Basket b set b.products = :list where b.id=:id")
+    void deleteAllBasketsProducts(Long id, List<Product> list);
 
 
 }

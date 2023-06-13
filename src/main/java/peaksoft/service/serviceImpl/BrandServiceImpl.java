@@ -10,6 +10,7 @@ import peaksoft.dto.dtoBrand.BrandRequest;
 import peaksoft.dto.dtoBrand.BrandResponse;
 import peaksoft.entity.Brand;
 import peaksoft.entity.Product;
+import peaksoft.exception.NotFoundException;
 import peaksoft.repository.BrandRepository;
 import peaksoft.repository.ProductRepository;
 import peaksoft.service.BrandService;
@@ -42,7 +43,7 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public SimpleResponse updateBrandById(Long id, BrandRequest brandRequest) {
-        Brand brand = repository.findById(id).orElseThrow(() -> new UsernameNotFoundException("Brand is not found!"));
+        Brand brand = repository.findById(id).orElseThrow(() -> new NotFoundException("Brand is not found!"));
         brand.setBrandName(brandRequest.brandName());
         brand.setImage(brandRequest.image());
         repository.save(brand);
@@ -56,7 +57,7 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public BrandResponse getBrandById(Long id) {
-        Brand brand = repository.findById(id).orElseThrow(() -> new UsernameNotFoundException("Brand is not found"));
+        Brand brand = repository.findById(id).orElseThrow(() -> new NotFoundException("Brand is not found"));
         return BrandResponse.builder()
                 .id(brand.getId())
                 .brandName(brand.getBrandName())
@@ -68,7 +69,7 @@ public class BrandServiceImpl implements BrandService {
     public SimpleResponse deleteBrandById(Long id) {
         if (repository.existsById(id)){
             repository.deleteById(id);
-        }else throw new UsernameNotFoundException("Brand with id: "+id+" is does not exist!");
+        }else throw new NotFoundException("Brand with id: "+id+" is does not exist!");
         return SimpleResponse.builder()
                 .status(HttpStatus.OK)
                 .message("Brand with id: "+id+" is deleted!")
@@ -77,8 +78,8 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public SimpleResponse assignProductToBrand(Long productId, Long brandId) {
-        Brand brand = repository.findById(brandId).orElseThrow(() -> new UsernameNotFoundException("Brand is not found"));
-        Product product = productRepository.findById(productId).orElseThrow(() -> new UsernameNotFoundException("Product is not found"));
+        Brand brand = repository.findById(brandId).orElseThrow(() -> new NotFoundException("Brand is not found"));
+        Product product = productRepository.findById(productId).orElseThrow(() -> new NotFoundException("Product is not found"));
         List<Product> products = new ArrayList<>();
         products.add(product);
         brand.setProducts(products);

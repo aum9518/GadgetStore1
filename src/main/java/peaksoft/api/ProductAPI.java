@@ -11,7 +11,6 @@ import peaksoft.enums.Category;
 import peaksoft.service.ProductService;
 
 import java.util.List;
-import java.util.Locale;
 
 @RestController
 @RequestMapping("products")
@@ -28,8 +27,8 @@ public class ProductAPI {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
-    public SimpleResponse saveProduct(@RequestBody ProductRequest productRequest) {
-        return service.saveProduct(productRequest);
+    public SimpleResponse saveProduct(@RequestBody ProductRequest productRequest,@RequestParam Long brandId) {
+        return service.saveProduct(productRequest, brandId);
     }
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("{id}")

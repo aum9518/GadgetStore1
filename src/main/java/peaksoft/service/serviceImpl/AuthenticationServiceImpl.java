@@ -13,8 +13,11 @@ import peaksoft.dto.dtoAuthentication.AdminTokenRequest;
 import peaksoft.dto.dtoAuthentication.AuthenticationRequest;
 import peaksoft.dto.dtoAuthentication.AuthenticationResponse;
 import peaksoft.dto.dtoAuthentication.SignIn;
+import peaksoft.entity.Basket;
 import peaksoft.entity.User;
 import peaksoft.enums.Role;
+import peaksoft.exception.NotFoundException;
+import peaksoft.repository.BasketRepository;
 import peaksoft.repository.UserRepository;
 import peaksoft.service.AuthenticationService;
 
@@ -27,6 +30,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserRepository userRepository;
     private final JWTService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final BasketRepository basketRepository;
 
     @Override
     public AuthenticationResponse adminToken(AdminTokenRequest adminTokenRequest) {
@@ -44,18 +48,23 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public AuthenticationResponse signUp(AuthenticationRequest authenticationRequest) {
-        if (userRepository.existsByEmail(authenticationRequest.email())){
-            throw new  EntityExistsException("user with email: "+ authenticationRequest.email()+" already exist");
-        }
+//        if (userRepository.existsByEmail(authenticationRequest.email())){
+//            throw new  EntityExistsException("user with email: "+ authenticationRequest.email()+" already exist");
+//        }
         User user = new User();
         user.setFirstName(authenticationRequest.firstName());
         user.setLastName(authenticationRequest.lastName());
         user.setEmail(authenticationRequest.email());
-        user.setRole(authenticationRequest.role());
+        user.setRole(Role.USER);
         user.setPassword(passwordEncoder.encode(authenticationRequest.password()));
         user.setCreatedAt(ZonedDateTime.now());
         user.setUpdateDate(ZonedDateTime.now());
         userRepository.save(user);
+
+        Basket basket = new Basket();
+        basket.setUser(user);
+        basketRepository.save(basket);
+
         String token = jwtService.generateToken(user);
 
         return AuthenticationResponse.builder()
@@ -67,7 +76,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public AuthenticationResponse signIn(SignIn signIn) {
-        User user = userRepository.getUserByEmail(signIn.email()).orElseThrow(() -> new UsernameNotFoundException("user is not found"));
+        User user = userRepository.getUserByEmail(signIn.email()).orElseThrow(() -> new NotFoundException("user is not found"));
         if (signIn.email().isBlank()){
             throw new BadCredentialsException("email does not exist...");
         }
@@ -92,6 +101,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setRole(Role.ADMIN);
         user.setCreatedAt(ZonedDateTime.now());
         user.setUpdateDate(ZonedDateTime.now());
+
+
         if (!userRepository.existsByEmail(user.getEmail())){
             userRepository.save(user);
         }
